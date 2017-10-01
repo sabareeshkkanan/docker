@@ -1,12 +1,15 @@
 # AlpineLinux with a glibc-2.23 and Oracle Java 8
 FROM alpine:3.6
 
+MAINTAINER Anastas Dancha <anapsix@random.io>
+# thanks to Vladimir Krivosheev <develar@gmail.com> aka @develar for smaller image
+# and Victor Palma <palma.victor@gmail.com> aka @devx for pointing it out
 
 # Java Version and other ENV
-ENV JAVA_VERSION_MAJOR=9 \
-    JAVA_VERSION_MINOR=181 \
+ENV JAVA_VERSION_MAJOR=8 \
+    JAVA_VERSION_MINOR=144 \
     JAVA_VERSION_BUILD=01 \
-    JAVA_PACKAGE=serverjre \
+    JAVA_PACKAGE=server-jre \
     JAVA_JCE=standard \
     JAVA_HOME=/opt/jdk \
     PATH=${PATH}:/opt/jdk/bin \
@@ -25,19 +28,19 @@ RUN set -ex && \
     /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
     mkdir /opt && \
     curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/java.tar.gz \
-      http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}+${JAVA_VERSION_MINOR}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}_linux-x64_bin.tar.gz && \
+      http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/090f390dda5b47b9b721c7dfaa008135/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz && \
     gunzip /tmp/java.tar.gz && \
     tar -C /opt -xf /tmp/java.tar && \
-    ln -s /opt/jdk-${JAVA_VERSION_MAJOR} /opt/jdk && \
+    ln -s /opt/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} /opt/jdk && \
     find /opt/jdk/ -maxdepth 1 -mindepth 1 | grep -v jre | xargs rm -rf && \
     cd /opt/jdk/ && ln -s ./jre/bin ./bin && \
     if [ "${JAVA_JCE}" == "unlimited" ]; then echo "Installing Unlimited JCE policy" && \
       curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/jce_policy-${JAVA_VERSION_MAJOR}.zip \
         http://download.oracle.com/otn-pub/java/jce/${JAVA_VERSION_MAJOR}/jce_policy-${JAVA_VERSION_MAJOR}.zip && \
       cd /tmp && unzip /tmp/jce_policy-${JAVA_VERSION_MAJOR}.zip && \
-      cp -v /tmp/UnlimitedJCEPolicyJDK8/*.jar /opt/jdk/lib/security/; \
+      cp -v /tmp/UnlimitedJCEPolicyJDK8/*.jar /opt/jdk/jre/lib/security/; \
     fi && \
-    sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=10/ $JAVA_HOME/conf/security/java.security && \
+    sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=10/ $JAVA_HOME/jre/lib/security/java.security && \
     apk del curl glibc-i18n && \
     rm -rf /opt/jdk/jre/plugin \
            /opt/jdk/jre/bin/javaws \
